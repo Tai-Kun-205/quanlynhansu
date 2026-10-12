@@ -1,0 +1,9 @@
+package com.example.hr_management.controller;
+import com.example.hr_management.dto.*;import com.example.hr_management.dto.request.PayrollRequest;import com.example.hr_management.dto.response.PayrollResponse;import com.example.hr_management.service.PayrollService;import jakarta.validation.Valid;import lombok.RequiredArgsConstructor;import org.springframework.data.domain.Page;import org.springframework.http.ResponseEntity;import org.springframework.security.access.prepost.PreAuthorize;import org.springframework.security.core.Authentication;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/payrolls") @RequiredArgsConstructor public class PayrollController{
+ private final PayrollService service;
+ @GetMapping @PreAuthorize("hasRole('ADMIN')") public ResponseEntity<ApiResponse<Page<PayrollResponse>>> search(@RequestParam(required=false)Integer month,@RequestParam(required=false)Integer year,@RequestParam(required=false)Long departmentId,@RequestParam(defaultValue="0")int page,@RequestParam(defaultValue="20")int size){return ResponseEntity.ok(ApiResponse.success(service.search(month,year,departmentId,page,size)));}
+ @GetMapping("/my") @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')") public ResponseEntity<ApiResponse<Page<PayrollResponse>>> my(@RequestParam(defaultValue="0")int page,@RequestParam(defaultValue="20")int size,Authentication a){return ResponseEntity.ok(ApiResponse.success(service.my(a.getName(),page,size)));}
+ @PostMapping @PreAuthorize("hasRole('ADMIN')") public ResponseEntity<ApiResponse<PayrollResponse>> save(@Valid @RequestBody PayrollRequest r){return ResponseEntity.ok(ApiResponse.success("Đã lưu bảng lương",service.save(r)));}
+ @PutMapping("/{id}/finalize") @PreAuthorize("hasRole('ADMIN')") public ResponseEntity<ApiResponse<Void>> finalize(@PathVariable Long id){service.finalize(id);return ResponseEntity.ok(ApiResponse.success("Đã chốt bảng lương",null));}
+}
